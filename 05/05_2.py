@@ -1,6 +1,6 @@
 import os
 import logging
-import numpy as np
+from collections import defaultdict
 
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 logger = logging.getLogger(__name__)
@@ -22,79 +22,69 @@ def read(inputfile):
         update = [int(i) for i in l.split(",")]
         updates.append(update)
 
-    print(rules)
-    print(updates)
-
     return rules, updates
 
 
-def check(update, rules):
-    for page1, page2 in rules:
-        try:
-            i1 = update.index(page1)
-        except:
-            i1 = -1
-        try:
-            i2 = update.index(page2)
-        except:
-            i2 = -1
-        if i1 >= 0 and i2 >= 0:
-            if i1 > i2:
-                return False
+def check(update, graph):
+    for page1, page2 in zip(update[:-1], update[1:]):
+        if page2 in graph[page1][0]:
+            return False
     return True
 
 
-def apply2(rule, update, indices):
-    page1, page2 = rule
-    logger.debug(f"** rule {page1}|{page2}: {indices=}")
-    for ii, i in enumerate(indices):
-        page = update[i]
-        if page2 != page:
-            continue
-        for j in indices[ii+1:]:
-            pagej = update[j]
-            if page1 == pagej:
-                logger.debug(f"  removing {j} and inserting it at {ii}: before: {indices=}")
-                indices.remove(j)
-                indices.insert(ii, j)
-                return True
-    return False
+def reorder(update, graph):
+    logger.debug(f"reordering: {update}")
+    pages = set(update)
 
-
-def reorder(update, rules):
-    indices = [i for i in range(len(update))]
-    N = len(indices)
-
-    while True:
-        for rule in rules:
-            applied = apply2(rule, update, indices)
-            if applied:
-                logger.debug(f"rule {rule[0]}|{rule[1]} applied: {indices=}, {[update[k] for k in indices]}")
-                break
-        if not applied:
+    # find the first page
+    first = None
+    for page in pages:
+        rest = pages.copy()
+        rest.remove(page)
+        befores = graph[page][0]
+        if not (rest & befores):
+            first = page
             break
+    assert first is not None
 
-    reordered = [update[k] for k in indices]
-    return reordered
+    logger.debug(f"first page is {first}")
+
+    n = len(pages)
+    imid = int(n / 2)
+    page = first
+    pages.remove(page)
+    count = 1
+    while count <= imid:
+        next_candidates = graph[page][1] & pages
+        for next_page in next_candidates:
+            if graph[next_page][0] & pages:
+                continue
+            page = next_page
+            pages.remove(page)
+            count += 1
+            break
+    return page
 
 
 def main(inputfile):
     rules, updates = read(inputfile)
-    #updates = updates[-1:]
+
+    # Represent rules as a digraph.
+    graph = defaultdict(lambda : [set(), set()].copy())
+    for page1, page2 in rules:
+        graph[page1][1].add(page2)
+        graph[page2][0].add(page1)
+
+    for p, (befores, afters) in graph.items():
+        logger.debug(f"{p} <- {befores}")
+        logger.debug(f"    -> {afters}")
 
     count = 0
-    for i, update in enumerate(updates):
-        if check(update, rules):
+    for update in updates:
+        if check(update, graph):
             continue
-        logger.debug(f"reordering {i}: {update}")
-        reordered = reorder(update, rules)
-
-        l = len(reordered)
-        assert l % 2 == 1
-        imid = int(l / 2)
-        mid = reordered[imid]
-        logger.info(f"reordered: {reordered} -> {mid}")
-        count += mid
+        page = reorder(update, graph)
+        count += page
     print(count)
 
 
