@@ -49,6 +49,7 @@ def reorder(update, graph):
 
     logger.debug(f"first page is {first}")
 
+    # traverse the graph, up to `imid` steps
     n = len(pages)
     imid = int(n / 2)
     page = first
