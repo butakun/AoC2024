@@ -1,6 +1,5 @@
 import os
 import logging
-import numpy as np
 
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 logger = logging.getLogger(__name__)
@@ -42,9 +41,8 @@ def test(v, coefs):
         ss = ss2
 
     for ops in ss:
-        ok = evaluate(v, coefs, ops)
-        if ok:
-            print("OK", v, coefs, ops)
+        if evaluate(v, coefs, ops):
+            logger.debug(f"{coefs}, {ops}, {v}")
             return True
     return False
 
