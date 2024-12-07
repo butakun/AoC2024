@@ -1,5 +1,6 @@
 import os
 import logging
+import itertools
 
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 logger = logging.getLogger(__name__)
@@ -31,16 +32,9 @@ def evaluate(ans, coefs, ops):
 
 def test(v, coefs):
 
-    ss = [""]
-    for i in range(len(coefs)-1):
-        ss2 = []
-        for s in ss:
-            ss2 += [s + "*"]
-            ss2 += [s + "+"]
-            ss2 += [s + "|"]
-        ss = ss2
-
-    for ops in ss:
+    ops_patterns = list(itertools.product("*+|", repeat=len(coefs)-1))
+    for ops in ops_patterns:
+        logger.debug(f"{ops=}")
         if evaluate(v, coefs, ops):
             logger.debug(f"{coefs}, {ops}, {v}")
             return True
@@ -52,8 +46,7 @@ def main(inputfile):
 
     s = 0
     for v, coefs in eqs:
-        ok = test(v, coefs)
-        if ok:
+        if test(v, coefs):
             s += v
     print(s)
 

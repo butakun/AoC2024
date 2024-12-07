@@ -1,5 +1,7 @@
 import os
 import logging
+import itertools
+
 
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 logger = logging.getLogger(__name__)
@@ -27,15 +29,8 @@ def evaluate(coefs, ops):
 
 def test(v, coefs):
 
-    ss = [""]
-    for i in range(len(coefs)-1):
-        ss2 = []
-        for s in ss:
-            ss2 += [s + "*"]
-            ss2 += [s + "+"]
-        ss = ss2
-
-    for ops in ss:
+    ops_patterns = list(itertools.product("*+|", repeat=len(coefs)-1))
+    for ops in ops_patterns:
         vv = evaluate(coefs, ops)
         if v == vv:
             logger.debug(f"{coefs}, {ops}, {vv}")
