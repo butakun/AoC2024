@@ -20,18 +20,16 @@ def main(inputfile):
     nodes = set()
 
     ij = np.where(grid != ".")
-    ants = [ (i, j) for i, j in zip(ij[0], ij[1]) ]
+    ants = [ (i, j) for i, j in np.stack(ij, axis=-1) ]
     freqs = defaultdict(list)
     for i1, j1 in ants:
         freq = grid[i1, j1]
-        freqs[freq].append((i1, j1))
+        freqs[freq].append(np.array((i1, j1)))
     logger.debug(f"{freqs=}")
 
     for freq, pp in freqs.items():
         logger.debug(f"{freq}:")
         for p1, p2 in combinations(pp, 2):
-            p1 = np.array(p1)
-            p2 = np.array(p2)
             logger.debug(f"-> {p1}, {p2}")
             d = p2 - p1
 
@@ -42,8 +40,8 @@ def main(inputfile):
                 if pa[0] < 0 or pa[0] >= idim or pa[1] < 0 or pa[1] >= jdim:
                     outside = True
                     break
-                nodes.add((pa[0], pa[1]))
-                logger.debug(f"   => {pa[0]}, {pa[1]}")
+                nodes.add(tuple(pa))
+                logger.debug(f"   => {pa}")
                 p0 = pa
 
             p0 = p1
@@ -53,8 +51,8 @@ def main(inputfile):
                 if pa[0] < 0 or pa[0] >= idim or pa[1] < 0 or pa[1] >= jdim:
                     outside = True
                     break
-                nodes.add((pa[0], pa[1]))
-                logger.debug(f"   => {pa[0]}, {pa[1]}")
+                nodes.add(tuple(pa))
+                logger.debug(f"   => {pa}")
                 p0 = pa
 
     logger.debug(f"{nodes=}")
