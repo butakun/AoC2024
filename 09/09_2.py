@@ -29,8 +29,6 @@ def main(inputfile):
     done = set()
     logger.debug(f"start: {disk[:5]} .. {disk[-5:]} | {tail[:10]}")
 
-    iloop = 0
-    #while disk and iloop < 4:
     while disk:
         f = disk.pop()
         while f[0] < 0 or f[0] in done:
@@ -41,32 +39,24 @@ def main(inputfile):
         logger.debug(f"moving {f}")
         moved = False
         for i, d in enumerate(disk):
-            if d[0] < 0:
-                if d[1] > f[1]:
-                    disk.insert(i, [f[0], f[1]])
+            if d[0] < 0 and d[1] >= f[1]:
+                # f can move into the slot d.
+                if d[1] == f[1]:
+                    disk[i] = f
+                else:
+                    disk.insert(i, f)
                     disk[i + 1] = [-1, d[1] - f[1]]
-                    disk.append([-1, f[1]])
 
-                    moved = True
-                    logger.debug(f"yes: {disk[:5]} .. {disk[-5:]} | {tail[:10]}")
-                    break
-                elif d[1] == f[1]:
-                    disk[i] = [f[0], f[1]]
-                    disk.append([-1, f[1]])
-
-                    moved = True
-                    logger.debug(f"yes: {disk[:5]} .. {disk[-5:]} | {tail[:10]}")
-                    break
+                disk.append([-1, f[1]])
+                moved = True
+                break
         if not moved:
             tail.insert(0, f)
-            logger.debug(f"no: {disk[:5]} .. {disk[-5:]} | {tail[:10]}")
+        logger.debug(f"{moved}: {disk[:5]} .. {disk[-5:]} | {tail[:10]}")
 
         done.add(f[0])
-        iloop += 1
 
     disk = disk + tail
-    #print(f"final: {disk}")
-    #return
 
     s = 0
     i = 0
