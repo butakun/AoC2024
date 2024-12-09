@@ -48,7 +48,6 @@ def main(inputfile):
                     disk.append([-1, f[1]])
 
                     moved = True
-                    #logger.debug(f"yes: {disk} | {tail}")
                     logger.debug(f"yes: {disk[:5]} .. {disk[-5:]} | {tail[:10]}")
                     break
                 elif d[1] == f[1]:
@@ -56,12 +55,10 @@ def main(inputfile):
                     disk.append([-1, f[1]])
 
                     moved = True
-                    #logger.debug(f"yes: {disk} | {tail}")
                     logger.debug(f"yes: {disk[:5]} .. {disk[-5:]} | {tail[:10]}")
                     break
         if not moved:
             tail.insert(0, f)
-            #logger.debug(f"no: {disk} | {tail}")
             logger.debug(f"no: {disk[:5]} .. {disk[-5:]} | {tail[:10]}")
 
         done.add(f[0])
@@ -76,7 +73,7 @@ def main(inputfile):
     for fid, len in disk:
         if fid >= 0:
             for j in range(len):
-                print(f"adding {fid} * {i + j} = {fid * (i + j)}")
+                logger.debug(f"adding {fid} * {i + j} = {fid * (i + j)}")
                 s += fid * (i + j)
         i += len
     print(s)
