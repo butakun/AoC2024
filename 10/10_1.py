@@ -23,10 +23,13 @@ def main(inputfile):
     sum = 0
     for head in heads:
         Q = [head]
-        H = defaultdict(set)
+        H = set()
         nines = set()
         while Q:
             i, j = Q.pop(0)
+            if (i, j) in H:
+                continue
+            H.add((i, j))
             v = int(grid[i, j])
             nei = []
             for i2, j2 in [[i+1,j], [i-1,j], [i,j+1], [i,j-1]]:
@@ -38,7 +41,6 @@ def main(inputfile):
                 v2 = int(v2)
                 if v2 != v + 1:
                     continue
-                H[(i, j)].add((i2, j2))
                 if v2 == 9:
                     nines.add((i2, j2))
                     continue

@@ -23,8 +23,6 @@ def main(inputfile):
     total = 0
     for head in heads:
         Q = [head]
-        H = defaultdict(set)
-        #rating = defaultdict(lambda: 0)
         rating = 0
         while Q:
             i, j = Q.pop(0)
@@ -39,9 +37,7 @@ def main(inputfile):
                 v2 = int(v2)
                 if v2 != v + 1:
                     continue
-                H[(i, j)].add((i2, j2))
                 if v2 == 9:
-                    #rating[(i2, j2)] += 1
                     rating += 1
                     continue
                 Q.append((i2, j2))
