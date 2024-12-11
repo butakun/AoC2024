@@ -1,7 +1,5 @@
 import os
 import logging
-import numpy as np
-from collections import defaultdict
 
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 logger = logging.getLogger(__name__)
@@ -11,6 +9,7 @@ def read(inputfile):
     line = open(inputfile).readline().strip().split()
     stones = list(map(int, line))
     return stones
+
 
 def blink(stones):
     stones2 = dict()
