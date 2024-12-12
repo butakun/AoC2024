@@ -130,7 +130,6 @@ class Canvas:
         t = self.t
         d = self.d
         n = side[0][1]
-        print(f"STEP: {n} -> {side}")
         for (i, j), (di, dj) in side:
             assert di == n[0] and dj == n[1]
             if di == 0:
@@ -155,7 +154,6 @@ class Canvas:
                     ei2 = ei1 + t
                 else:
                     raise ValueError
-            print(f"{ei1=},{ei2=},{ej1=},{ej2=}")
             self.frame[ei1:ei2, ej1:ej2, :] = 0
 
 
@@ -191,12 +189,6 @@ def main(inputfile):
     print(f"{canvas.width=}, {canvas.height=}")
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     writer = cv2.VideoWriter("video.mp4", fourcc, 30.0, (canvas.width, canvas.height))
-
-    """
-    iframe = 0
-    cv2.imwrite(f"frame.{iframe:05d}.png", canvas.frame)
-    iframe += 1
-    """
 
     for plant, component, peri in plots:
         sides = gather_sides(peri)
