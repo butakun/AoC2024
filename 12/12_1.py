@@ -13,10 +13,8 @@ def read(inputfile):
     grid = np.array(grid)
     return grid
 
-def measure(grid):
-    plants = np.unique(grid)
+def make_graph(grid):
     idim, jdim = grid.shape
-
     G = defaultdict(set)
     for i in range(idim):
         for j in range(jdim):
@@ -28,6 +26,13 @@ def measure(grid):
                     continue
                 if grid[i2, j2] == plant:
                     G[(i, j)].add((i2, j2))
+    return G
+
+def measure(grid):
+    plants = np.unique(grid)
+    idim, jdim = grid.shape
+
+    G = make_graph(grid)
     print(f"{G=}")
 
     H = set()
