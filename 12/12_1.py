@@ -13,38 +13,9 @@ def read(inputfile):
     grid = np.array(grid)
     return grid
 
-def measure_old(grid):
-    plants = np.unique(grid)
-    idim, jdim = grid.shape
-
-    price = 0
-    for plant in plants:
-        area = np.sum(grid == plant)
-
-        peri = 0
-        for i in range(idim):
-            for j in range(jdim):
-                if grid[i, j] != plant:
-                    continue
-                for di, dj in [[1, 0], [-1, 0], [0, 1], [0, -1]]:
-                    i2 = i + di
-                    j2 = j + dj
-                    if i2 < 0 or i2 >= idim or j2 < 0 or j2 >= jdim:
-                        peri += 1
-                    elif grid[i2, j2] != plant:
-                        peri += 1
-        print(f"{plant}: {area=}, {peri=}")
-        price += area * peri
-    print(price)
-
 def measure(grid):
     plants = np.unique(grid)
     idim, jdim = grid.shape
-
-    G = defaultdict(set)
-    for plant in plants:
-        Q = np.stack(np.where(grid == plant), axis=-1).tolist()
-        print(f"{plant}: {Q}")
 
     G = defaultdict(set)
     for i in range(idim):
