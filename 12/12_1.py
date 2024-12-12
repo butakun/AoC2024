@@ -2,8 +2,9 @@ import os
 import logging
 import numpy as np
 from collections import defaultdict
+from itertools import combinations
 
-logging.basicConfig(level=os.environ.get("LOG_LEVEL", "DEBUG"))
+logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 logger = logging.getLogger(__name__)
 
 
@@ -13,8 +14,10 @@ def read(inputfile):
     grid = np.array(grid)
     return grid
 
-def make_graph(grid):
+
+def make_plant_graph(grid):
     idim, jdim = grid.shape
+
     G = defaultdict(set)
     for i in range(idim):
         for j in range(jdim):
@@ -26,64 +29,65 @@ def make_graph(grid):
                     continue
                 if grid[i2, j2] == plant:
                     G[(i, j)].add((i2, j2))
+            if (i, j) not in G:
+                G[(i, j)] = set()
+    G = dict(G)
     return G
 
-def measure(grid):
-    plants = np.unique(grid)
-    idim, jdim = grid.shape
 
-    G = make_graph(grid)
-    print(f"{G=}")
-
+def connected_components(G, new_component_func=None):
+    Q = list(G.keys())
     H = set()
-    plots = []
-    for i in range(idim):
-        for j in range(jdim):
-            if (i, j) in H:
+    C = []
+    while Q:
+        c = set()
+        q = [Q[0]]
+        while q:
+            p = q.pop()
+            if p in c:
                 continue
-
-            Q = [(i, j)]
-            component = set()
-            while Q:
-                ii, jj = Q.pop(0)
-                if (ii, jj) in H:
-                    continue
-                plant = str(grid[ii, jj])
-                print(f"{plant=}")
-                H.add((ii, jj))
-                component.add((ii, jj))
-                for nei in G[(ii, jj)]:
-                    component.add(nei)
-                    if nei not in H:
-                        Q.append(nei)
-            print(f"{plant}: {component}")
-            plots.append([plant, component])
-
-    print(plots)
-
-    price = 0
-    for plant, component in plots:
-        area = len(component)
-        peri = 0
-        for i, j in component:
-            for di, dj in [[1, 0], [-1, 0], [0, 1], [0, -1]]:
-                i2 = i + di
-                j2 = j + dj
-                if i2 < 0 or i2 >= idim or j2 < 0 or j2 >= jdim:
-                    peri += 1
-                    continue
-                if grid[i2, j2] != plant:
-                    peri += 1
-        print(f"{plant=}, {area=}, {peri=}")
-        price += area * peri
-    print(price)
+            c.add(p)
+            for nei in G[p]:
+                q.append(nei)
+        c = list(c)
+        if new_component_func is None:
+            C.append(c)
+        else:
+            C.append(new_component_func(c))
+        for node in c:
+            Q.remove(node)
+    return C
 
 
 def main(inputfile):
     grid = read(inputfile)
-    print(grid)
+    idim, jdim = grid.shape
 
-    measure(grid)
+    G = make_plant_graph(grid)
+    logger.debug(f"{G=}")
+
+    def new_plot(component):
+        anchor = component[0]
+        plant = str(grid[anchor[0], anchor[1]])
+        logger.info(f"new plot {plant}: {component}")
+        return plant, component
+
+    plots = connected_components(G, new_plot)
+
+    price = 0
+    for plant, component in plots:
+        area = len(component)
+        peri = set()
+        for i, j in component:
+            for di, dj in [[1, 0], [-1, 0], [0, 1], [0, -1]]:
+                i2 = i + di
+                j2 = j + dj
+                if (i2 < 0 or i2 >= idim or j2 < 0 or j2 >= jdim) or grid[i2, j2] != plant:
+                    peri.add(((i, j), (di, dj)))
+        logger.info(f"{plant=}, {area=}, {len(peri)=}")
+        price += area * len(peri)
+    print(price)
+
 
 if __name__ == "__main__":
     import argparse
