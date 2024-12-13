@@ -3,7 +3,6 @@ import logging
 import numpy as np
 from collections import defaultdict
 from itertools import combinations
-from factor import prime_factors
 
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 logger = logging.getLogger(__name__)
