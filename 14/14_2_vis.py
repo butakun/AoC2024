@@ -37,22 +37,9 @@ def draw(robots, shape):
     return grid
 
 
-def count(robots, shape):
-    idim, jdim = shape
-    oi, oj = idim // 2, jdim // 2
-
-    q = [0] * 4
-    for (x, y), _ in robots:
-        if x > oi and y > oj:
-            q[0] += 1
-        elif x < oi and y > oj:
-            q[1] += 1
-        elif x < oi and y < oj:
-            q[2] += 1
-        elif x > oi and y < oj:
-            q[3] += 1
-            i = 3
-    return q
+def stat(robots, shape):
+    p = np.array([p for p, _ in robots])
+    return p.mean(axis=0), p.std(axis=0)
 
 
 def step(robots, shape, t=1):
@@ -70,10 +57,9 @@ def main(inputfile):
 
     imax, jmax = np.max(robots[:, 0, :], axis=0)
     idim, jdim = imax + 1, jmax + 1
-    print(idim, jdim)
     shape = np.array([idim, jdim])
 
-    N = len(robots)
+    mu0, sigma0 = stat(robots, shape)
 
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     fps = 30
@@ -84,14 +70,15 @@ def main(inputfile):
     t = 1
     while True:
         robots = step(robots, shape)
-        q = count(robots, shape)
-        print(f"step {t}, {q=}")
+        mu, sigma = stat(robots, shape)
+        print(f"step {t}, {mu=}, {sigma=}")
         grid = draw(robots, shape)
         if t % 60 == 0:
             writer.write(grid)
-        if max(q) > (N * 0.5):
+        if np.all(sigma < 0.7 * sigma0):
             break
         t += 1
+
     for _ in range(fps):
         writer.write(grid)
     dump(robots, shape)
