@@ -1,6 +1,7 @@
 import os
 import logging
 import numpy as np
+import cv2
 
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 logger = logging.getLogger(__name__)
@@ -17,10 +18,23 @@ def dump(robots, shape):
     grid = np.zeros(shape, dtype=np.uint64)
     for p, _ in robots:
         grid[p[0], p[1]] += 1
+    grid = grid[:-1:2,:-1:2] + grid[1::2,1::2]
+
     grid = grid.astype(np.str_)
     grid[grid == "0"] = "."
     grid = grid.T
-    print(grid)
+    for l in grid:
+        print("".join(l))
+
+
+def draw(robots, shape):
+    idim, jdim = shape[:2]
+    grid = np.zeros((jdim, idim, 3), dtype=np.uint8)
+    for (i, j), _ in robots:
+        grid[j, i, :] += 1
+    N = np.max(grid)
+    grid[:, :, :] = grid[:, :, :] / N * 255
+    return grid
 
 
 def count(robots, shape):
@@ -29,7 +43,6 @@ def count(robots, shape):
 
     q = [0] * 4
     for (x, y), _ in robots:
-        print(x, y, oi, oj)
         if x > oi and y > oj:
             q[0] += 1
         elif x < oi and y > oj:
@@ -39,35 +52,49 @@ def count(robots, shape):
         elif x > oi and y < oj:
             q[3] += 1
             i = 3
-    c = q[0] * q[1] * q[2] * q[3]
-    return c
+    return q
+
+
+def step(robots, shape, t=1):
+    robots2 = []
+    for robot in robots:
+        p, v = robot
+        p2 = p + v * t
+        p2 = p2 % shape
+        robots2.append([p2, v])
+    return robots2
 
 
 def main(inputfile):
     robots = read(inputfile)
-    print(robots)
 
     imax, jmax = np.max(robots[:, 0, :], axis=0)
     idim, jdim = imax + 1, jmax + 1
     print(idim, jdim)
     shape = np.array([idim, jdim])
 
+    N = len(robots)
+
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    fps = 30
+    writer = cv2.VideoWriter("video.mp4", fourcc, fps, (idim, jdim))
+    grid = draw(robots, shape)
+    writer.write(grid)
+
+    t = 1
+    while True:
+        robots = step(robots, shape)
+        q = count(robots, shape)
+        print(f"step {t}, {q=}")
+        grid = draw(robots, shape)
+        if t % 60 == 0:
+            writer.write(grid)
+        if max(q) > (N * 0.5):
+            break
+        t += 1
+    for _ in range(fps):
+        writer.write(grid)
     dump(robots, shape)
-
-    t = 100
-    robots2 = []
-    for robot in robots:
-        print(f"* {robot}")
-        p, v = robot
-        p2 = p + v * t
-        print(p2)
-        p2 = p2 % shape
-        print(p2)
-        robots2.append([p2, v])
-
-    dump(robots2, shape)
-    c = count(robots2, shape)
-    print(c)
 
 
 if __name__ == "__main__":
