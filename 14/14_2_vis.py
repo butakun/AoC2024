@@ -8,9 +8,9 @@ logger = logging.getLogger(__name__)
 
 
 def read(inputfile):
-    robots = [ l.strip().split() for l in open(inputfile) ]
-    robots = [ [p[2:].split(","), v[2:].split(",")] for p, v in robots ]
-    robots = [ [[int(p[0]), int(p[1])], [int(v[0]), int(v[1])]] for p, v in robots ]
+    pat = re.compile(r"p=(-?\d+),(-?\d+) v=(-?\d+),(-?\d+)")
+    robots = [ list(map(int, pat.match(l).groups())) for l in open(inputfile) ]
+    robots = [ [[v[0], v[1]], [v[2], v[3]]] for v in robots ]
     return np.array(robots)
 
 
