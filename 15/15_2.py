@@ -2,6 +2,7 @@ import os
 import logging
 import re
 import numpy as np
+from canvas import Canvas
 
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 logger = logging.getLogger(__name__)
@@ -117,7 +118,7 @@ def step(robot, grid, movement):
     return i2, j2
 
 
-def main(inputfile):
+def main(inputfile, vis):
     grid, movements = read(inputfile)
 
     i, j = np.where(grid == "@")
@@ -126,9 +127,14 @@ def main(inputfile):
     robot = [i, j]
 
     dump(grid)
-    for movement in movements:
+    if vis:
+        canvas = Canvas()
+        canvas.draw_frame(grid)
+    for i, movement in enumerate(movements):
         logger.debug(f"move {movement}, {robot=}")
         robot = step(robot, grid, movement)
+        if vis and i % 100 == 0:
+            canvas.draw_frame(grid)
 
     dump(grid)
     total = 0
@@ -141,5 +147,6 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("input", nargs="?", default="input.txt")
+    parser.add_argument("--vis", action="store_true")
     args = parser.parse_args()
-    main(args.input)
+    main(args.input, args.vis)
