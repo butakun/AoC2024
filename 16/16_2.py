@@ -48,6 +48,10 @@ def read(inputfile):
     return np.array(grid)
 
 
+def dump(grid):
+    for row in grid:
+        print("".join(row))
+
 def main(inputfile, vis):
     grid = read(inputfile)
     i, j = np.stack(np.where(grid == "S"), axis=-1)[0]
@@ -68,7 +72,7 @@ def main(inputfile, vis):
     g = grid.copy()
     for i, j in spots:
         g[i, j] = "O"
-    print(g)
+    dump(g)
 
 if __name__ == "__main__":
     import argparse
