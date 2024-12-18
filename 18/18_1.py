@@ -47,8 +47,8 @@ def main(inputfile, vis):
     maze = Maze(bytes[:1024])
 
     u0 = (0, 0)
-    print(maze[u0])
-    dijkstra(maze, u0, lambda u: maze.is_goal(u), debug_freq=1)
+    path, distance = dijkstra(maze, u0, lambda u: maze.is_goal(u), debug_freq=1)
+    print(distance)
 
 if __name__ == "__main__":
     import argparse
