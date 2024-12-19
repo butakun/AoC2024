@@ -15,28 +15,26 @@ def read(inputfile):
 
 
 def design_a_towel(design, towels):
-    Q = [0]
+    Q = deque([0])
     H = set()
+    N = len(design)
 
     while Q:
-        i = Q.pop(0)
-        if i >= len(design):
+        i = Q.popleft()
+        if i >= N:
             break
+        if i in H:
+            continue
+        H.add(i)
 
         head = design[i:]
-        if head in H:
-            continue
-        H.add(str(head))
-
         for t in towels:
             if head.startswith(t):
                 logger.debug(f"{i}: {head=} - {t=}")
                 Q.append(i + len(t))
 
     assert i <= len(design)
-    if i == len(design):
-        return True
-    return False
+    return i == N
 
 
 def main(inputfile):
