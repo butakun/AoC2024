@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 def read(inputfile):
     f = open(inputfile)
-    towels = f.readline().strip().replace(" ", "").split(",")
+    towels = [ t.strip() for t in f.readline().strip().split(",") ]
     f.readline()
     designs = [ l.strip()  for l in f ]
     return towels, designs
