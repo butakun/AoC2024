@@ -1,6 +1,6 @@
 import os
 import logging
-from collections import defaultdict, deque
+from collections import Counter
 import numpy as np
 from dijkstra import dijkstra_distance, dijkstra
 
@@ -42,7 +42,7 @@ def dump(g):
 
 
 def cheat(Dsrc, Ddst, distance_max, ncheats, min_save):
-    cheats = defaultdict(lambda: 0)
+    cheats = Counter()
     for (i1, j1), dsrc in Dsrc.items():
         for (i2, j2), ddst in Ddst.items():
             di = i2 - i1
