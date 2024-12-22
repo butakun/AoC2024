@@ -51,80 +51,64 @@ T_NUMERIC = generate_transitions(NUMERIC)
 
 
 class Operator:
-    def __init__(self, code):
-        self.code = code
+    def __init__(self, directionals=25):
+        self.TT = [T_DIRECTIONAL] * directionals + [T_NUMERIC]
 
     def __getitem__(self, u):
-        p1, p2, p3, c1, c2, c3, c4 = u
+        pp = u
         vv = []
         for t in "^v<>":
-            T = T_DIRECTIONAL[p1]
+            T = T_DIRECTIONAL[pp[0]]
             if t in T:
-                p1n = T[t]
-                v = (p1n, p2, p3, c1, c2, c3, c4)
-                vv.append(v)
+                ppn = list(pp).copy()
+                ppn[0] = T[t]
+                vv.append(tuple(ppn))
 
         # what if the operator pressed A?
-        if p1 == "A":
-            # and robot 1 is pointing at A, pressing robot 2 in turn
-            if p2 == "A":
-                # and robot 2 is pointing at A, pressing robot 3 in turn
-                cc = None
-                if c1 is None:
-                    assert c2 is None and c3 is None and c4 is None
-                    cc = (p3, c2, c3, c4)
-                elif c2 is None:
-                    assert c3 is None and c4 is None
-                    cc = (c1, p3, c3, c4)
-                elif c3 is None:
-                    assert c4 is None
-                    cc = (c1, c2, p3, c4)
-                elif c4 is None:
-                    cc = (c1, c2, c3, p3)
-                else:
-                    assert ValueError(f"{c1=}, {c2=}, {c3=}, {c4=}")
-                if cc is not None:
-                    v = (p1, p2, p3) + cc
-                    vv.append(v)
+        try:
+            index_not_A = next(i for i, p in enumerate(pp) if p != "A")
+            button_pressed = pp[index_not_A]
+            if index_not_A < len(pp) - 1:
+                index_being_moved = index_not_A + 1
+                p_being_moved = pp[index_being_moved]
+                T = self.TT[index_being_moved]
+                if button_pressed in T[p_being_moved]:
+                    p_next = T[p_being_moved][button_pressed]
+                    ppn = list(pp).copy()
+                    ppn[index_being_moved] = p_next
+                    vv.append(tuple(ppn))
             else:
-                assert p2 in "<>^v"
-                # move p3 if allowed
-                if p2 in T_NUMERIC[p3]:
-                    p3n = T_NUMERIC[p3][p2]
-                    vv.append((p1, p2, p3n, c1, c2, c3, c4))
-        else:
-            assert p1 in "<>^v"
-            # move p2 if allowed
-            if p1 in T_DIRECTIONAL[p2]:
-                p2n = T_DIRECTIONAL[p2][p1]
-                vv.append((p1, p2n, p3, c1, c2, c3, c4))
+                # the last numerical key is being pressed.
+                pass
+
+        except StopIteration:
+            # all A's, no other state transition.
+            pass
 
         vvw = [ (v, 1) for v in vv ]
         return vvw
-
-    def is_goal(self, u):
-        _, _, _, c1, c2, c3, c4 = u
-        if c1 is None or c2 is None or c3 is None or c4 is None:
-            return False
-        cc = c1 + c2 + c3 + c4
-        return cc == self.code
 
 
 def main(inputfile):
     codes = [ l.strip() for l in open(inputfile)]
 
-    total = 0
+    n_directionals = 2
+    operator = Operator(n_directionals)
+
+    total_complexities = 0
     for code in codes:
-        operator = Operator(code)
-        u0 = ("A", "A", "A", None, None, None, None)
-        print(operator[u0])
+        u0 = ("A", ) * n_directionals + ("A",)
+        steps = 0
+        for letter in code:
+            path, best_distance, _ = dijkstra(operator, u0, lambda u: "".join(u) == f"AA{letter}")
+            print(path[0], best_distance + 1)  # +1 because pressing "A" is not included in the above dijkstra
+            u0 = path[0]
+            steps += best_distance + 1
+        complexity = int(code[:3]) * steps
+        print(f"{code=}: {steps=}, {complexity=}")
+        total_complexities += complexity
+    print(f"{total_complexities=}")
 
-        path, best_distance, _ = dijkstra(operator, u0, lambda u: operator.is_goal(u))
-        print(path, best_distance)
-
-        digits = int(code[:-1])
-        total += digits * best_distance
-    print(f"{total=}")
 
 
 if __name__ == "__main__":
