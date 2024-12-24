@@ -156,7 +156,7 @@ def main(inputfile):
             print(f"{i}(z{i:02d}) is wrong")
             wrong_zs.append(f"z{i:02d}")
 
-    print("now do dot -Tpng input.txt > circuit.png, and swap 4 pairs of outputs by hand.")
+    print("now do dot -Tpng circuit.dot > circuit.png, and swap 4 pairs of outputs by hand.")
     print(Figlet(font="cosmic").renderText("God  Jul  !"))
 
 
