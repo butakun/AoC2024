@@ -89,6 +89,23 @@ class Operator:
         return vvw
 
 
+def dump_path(path):
+    path = path.copy()
+    path.reverse()
+    for p1, p2 in zip(path[:-1], path[1:]):
+        a, b, t = p1[0], p2[0], None
+        if a == b:
+            t = "A"
+        else:
+            for t_, b_ in T_DIRECTIONAL[a].items():
+                if b_ == b:
+                    t = t_
+                    break
+        assert t, ValueError(f"{a=}, {b=}")
+        print("".join(p1), t)
+    print("".join(path[-1]))
+
+
 def main(inputfile):
     codes = [ l.strip() for l in open(inputfile)]
 
@@ -103,6 +120,7 @@ def main(inputfile):
             path, best_distance, _ = dijkstra(operator, u0, lambda u: "".join(u) == f"AA{letter}")
             print(path[0], best_distance + 1)  # +1 because pressing "A" is not included in the above dijkstra
             u0 = path[0]
+            #dump_path(path)
             steps += best_distance + 1
         complexity = int(code[:3]) * steps
         print(f"{code=}: {steps=}, {complexity=}")
